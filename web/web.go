@@ -1,6 +1,7 @@
 package web
 
 import (
+	"crypto/tls"
 	"embed"
 	"encoding/json"
 	"io"
@@ -95,6 +96,22 @@ func ListenAndServe(conf *config.Config) error {
 	r.HandleFunc("/backend/stats.php", results.Stats)
 
 	go listenProxyProtocol(conf, r)
+	// TLS
+	if conf.EnableTLS {
+		if !(conf.EnableHTTP2) {
+			srv := &http.Server{
+				Addr:         addr,
+				Handler:      r,
+				TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
+			}
+			return srv.ListenAndServeTLS(conf.TLSCertFile, conf.TLSKeyFile)
+		} else {
+			return http.ListenAndServeTLS(addr, conf.TLSCertFile, conf.TLSKeyFile, r)
+		}
+	} else {
+		return http.ListenAndServe(addr, r)
+	}
+
 	return http.ListenAndServe(addr, r)
 }
 
