@@ -111,8 +111,6 @@ func ListenAndServe(conf *config.Config) error {
 	} else {
 		return http.ListenAndServe(addr, r)
 	}
-
-	return http.ListenAndServe(addr, r)
 }
 
 func listenProxyProtocol(conf *config.Config, r *chi.Mux) {
